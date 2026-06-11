@@ -44,7 +44,12 @@ function initPhone() {
 
   // 4. 挂载手机（使用 jQuery 方式确保在酒馆中正确显示）
   $(phoneContainer).appendTo('body');
-  console.log('[Phone] phoneContainer added to body');
+  console.log('[Phone] phoneContainer append attempt to body');
+  if (!document.body.contains(phoneContainer)) {
+    console.warn('[Phone] phoneContainer not found in body, appending to html instead');
+    $(phoneContainer).appendTo('html');
+  }
+  console.log('[Phone] phoneContainer present:', document.body.contains(phoneContainer), 'rect:', phoneContainer.getBoundingClientRect());
 
   // ==========================================
   // 5. 创建开关按钮
@@ -155,7 +160,12 @@ function initPhone() {
 
   // 使用 jQuery 方式添加按钮
   $(toggleBtn).appendTo('body');
-  console.log('[Phone] toggleBtn added to body');
+  console.log('[Phone] toggleBtn append attempt to body');
+  if (!document.body.contains(toggleBtn)) {
+    console.warn('[Phone] toggleBtn not found in body, appending to html instead');
+    $(toggleBtn).appendTo('html');
+  }
+  console.log('[Phone] toggleBtn present:', document.body.contains(toggleBtn), 'rect:', toggleBtn.getBoundingClientRect(), 'computed display:', getComputedStyle(toggleBtn).display);
 }
 
 $(() => {
