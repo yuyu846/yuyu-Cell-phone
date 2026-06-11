@@ -1,5 +1,3 @@
-import { createScriptIdDiv } from '@util/script';
-
 function initPhone() {
   // ==========================================
   // 0. 热更新清理（极其重要！）
@@ -36,21 +34,40 @@ function initPhone() {
 
   // 3. 往手机里塞内容
   phoneContainer.innerHTML = `
-    <div style="background: #333; color: white; text-align: center; padding: 5px; font-size: 12px;">15:20 | 5G 🔋94%</div>
-    <div style="flex: 1; padding: 20px; text-align: center;">
-        <h2 style="color: #333;">我的智能手机</h2>
-        <button id="btn-message" style="padding: 10px; margin: 10px; border-radius: 10px; cursor: pointer;">短信 App</button>
-        <button id="btn-photo" style="padding: 10px; margin: 10px; border-radius: 10px; cursor: pointer;">相册 App</button>
+    <div id="phone-frame" style="display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#222;color:#fff;">
+        <div style="font-size:12px;">15:20 | 5G</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="phone-close" style="background:transparent;border:none;color:#fff;font-size:16px;cursor:pointer;">✖</button>
+        </div>
+      </div>
+      <div style="flex:1; padding:16px; overflow:auto; background:#fff;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div style="text-align:center;">
+            <div style="width:64px;height:64px;border-radius:14px;background:#f0f0f0;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:24px;">💬</div>
+            <div style="margin-top:6px;font-size:12px;color:#333;">短信</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:64px;height:64px;border-radius:14px;background:#f0f0f0;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:24px;">📷</div>
+            <div style="margin-top:6px;font-size:12px;color:#333;">相册</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:64px;height:64px;border-radius:14px;background:#f0f0f0;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:24px;">⚙️</div>
+            <div style="margin-top:6px;font-size:12px;color:#333;">设置</div>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
-  // 4. 挂载手机（使用示例中的 createScriptIdDiv 作为根容器，增强兼容性）
-  const $root = createScriptIdDiv().appendTo('body');
-  $root.append(phoneContainer);
-  console.log('[Phone] phoneContainer appended to script root', $root);
-  if (!document.body.contains(phoneContainer)) {
-    console.warn('[Phone] phoneContainer not found in body after append');
-  }
+  // 4. 挂载手机（使用 jQuery 方式确保在酒馆中正确显示）
+  $(phoneContainer).appendTo('body');
+  console.log('[Phone] phoneContainer added to body');
+
+  // 绑定手机内部交互（关闭）
+  $(phoneContainer).find('#phone-close').on('click', () => {
+    phoneContainer.style.display = 'none';
+  });
 
   // ==========================================
   // 5. 创建开关按钮
@@ -78,44 +95,23 @@ function initPhone() {
     transition: all 0.3s ease;
   `;
 
-  // 拖动功能（使用 Pointer Events，支持鼠标与触摸）
-  let isPointerDown = false;
+  // 拖动功能
   let isDragging = false;
-  let startX = 0;
-  let startY = 0;
   let offsetX = 0;
   let offsetY = 0;
-  const dragThreshold = 6; // 超过该像素认为是拖拽
 
-  // 防止触摸时浏览器默认手势影响
-  toggleBtn.style.touchAction = 'none';
-
-  toggleBtn.addEventListener('pointerdown', (e) => {
-    isPointerDown = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    const rect = toggleBtn.getBoundingClientRect();
-    offsetX = startX - rect.left;
-    offsetY = startY - rect.top;
-    toggleBtn.setPointerCapture && toggleBtn.setPointerCapture(e.pointerId);
-    toggleBtn.style.transition = 'none';
+  toggleBtn.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    offsetX = e.clientX - toggleBtn.getBoundingClientRect().left;
+    offsetY = e.clientY - toggleBtn.getBoundingClientRect().top;
     toggleBtn.style.cursor = 'grabbing';
-    e.preventDefault();
+    toggleBtn.style.transition = 'none';
   });
 
-  document.addEventListener('pointermove', (e) => {
-    if (!isPointerDown) return;
-    const dx = Math.abs(e.clientX - startX);
-    const dy = Math.abs(e.clientY - startY);
-    if (!isDragging && (dx > dragThreshold || dy > dragThreshold)) {
-      isDragging = true;
-    }
+  document.addEventListener('mousemove', (e) => {
     if (isDragging) {
-      let x = e.clientX - offsetX;
-      let y = e.clientY - offsetY;
-      // 约束到视口范围内
-      x = Math.max(0, Math.min(window.innerWidth - toggleBtn.offsetWidth, x));
-      y = Math.max(0, Math.min(window.innerHeight - toggleBtn.offsetHeight, y));
+      const x = e.clientX - offsetX;
+      const y = e.clientY - offsetY;
       toggleBtn.style.right = 'auto';
       toggleBtn.style.bottom = 'auto';
       toggleBtn.style.left = x + 'px';
@@ -123,14 +119,10 @@ function initPhone() {
     }
   });
 
-  document.addEventListener('pointerup', (e) => {
-    if (!isPointerDown) return;
-    isPointerDown = false;
-    toggleBtn.releasePointerCapture && toggleBtn.releasePointerCapture(e.pointerId);
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
     toggleBtn.style.cursor = 'grab';
     toggleBtn.style.transition = 'all 0.3s ease';
-    // 结束拖拽后短暂清除标志，保证 click 判断正确
-    setTimeout(() => { isDragging = false; }, 0);
   });
 
   // 6. 点击按钮切换手机显示状态
@@ -159,12 +151,9 @@ function initPhone() {
     }
   });
 
-  // 使用示例中的根容器添加按钮
-  $root.append(toggleBtn);
-  console.log('[Phone] toggleBtn appended to script root', $root);
-  if (!document.body.contains(toggleBtn)) {
-    console.warn('[Phone] toggleBtn not found in body after append');
-  }
+  // 使用 jQuery 方式添加按钮
+  $(toggleBtn).appendTo('body');
+  console.log('[Phone] toggleBtn added to body');
 }
 
 $(() => {
