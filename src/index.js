@@ -132,4 +132,5 @@ function initPhone() {
 
 $(() => {
   initPhone();
+  toastr.success('小手机已加载成功！', '📱');
 });
