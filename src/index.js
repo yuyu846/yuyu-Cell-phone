@@ -42,13 +42,9 @@ function initPhone() {
     </div>
   `;
 
-  // 4. 挂载手机
-  if (document.body) {
-    document.body.appendChild(phoneContainer);
-    console.log('[Phone] phoneContainer added to body');
-  } else {
-    console.error('[Phone] document.body is not available');
-  }
+  // 4. 挂载手机（使用 jQuery 方式确保在酒馆中正确显示）
+  $(phoneContainer).appendTo('body');
+  console.log('[Phone] phoneContainer added to body');
 
   // ==========================================
   // 5. 创建开关按钮
@@ -132,7 +128,8 @@ function initPhone() {
     }
   });
 
-  document.body.appendChild(toggleBtn);
+  // 使用 jQuery 方式添加按钮
+  $(toggleBtn).appendTo('body');
   console.log('[Phone] toggleBtn added to body');
 }
 
