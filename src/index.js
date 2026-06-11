@@ -1,3 +1,5 @@
+import { createScriptIdDiv } from '@util/script';
+
 function initPhone() {
   // ==========================================
   // 0. 热更新清理（极其重要！）
@@ -42,14 +44,13 @@ function initPhone() {
     </div>
   `;
 
-  // 4. 挂载手机（使用 jQuery 方式确保在酒馆中正确显示）
-  $(phoneContainer).appendTo('body');
-  console.log('[Phone] phoneContainer append attempt to body');
+  // 4. 挂载手机（使用示例中的 createScriptIdDiv 作为根容器，增强兼容性）
+  const $root = createScriptIdDiv().appendTo('body');
+  $root.append(phoneContainer);
+  console.log('[Phone] phoneContainer appended to script root', $root);
   if (!document.body.contains(phoneContainer)) {
-    console.warn('[Phone] phoneContainer not found in body, appending to html instead');
-    $(phoneContainer).appendTo('html');
+    console.warn('[Phone] phoneContainer not found in body after append');
   }
-  console.log('[Phone] phoneContainer present:', document.body.contains(phoneContainer), 'rect:', phoneContainer.getBoundingClientRect());
 
   // ==========================================
   // 5. 创建开关按钮
@@ -158,14 +159,12 @@ function initPhone() {
     }
   });
 
-  // 使用 jQuery 方式添加按钮
-  $(toggleBtn).appendTo('body');
-  console.log('[Phone] toggleBtn append attempt to body');
+  // 使用示例中的根容器添加按钮
+  $root.append(toggleBtn);
+  console.log('[Phone] toggleBtn appended to script root', $root);
   if (!document.body.contains(toggleBtn)) {
-    console.warn('[Phone] toggleBtn not found in body, appending to html instead');
-    $(toggleBtn).appendTo('html');
+    console.warn('[Phone] toggleBtn not found in body after append');
   }
-  console.log('[Phone] toggleBtn present:', document.body.contains(toggleBtn), 'rect:', toggleBtn.getBoundingClientRect(), 'computed display:', getComputedStyle(toggleBtn).display);
 }
 
 $(() => {
