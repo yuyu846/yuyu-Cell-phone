@@ -130,8 +130,6 @@ function initPhone() {
   document.body.appendChild(toggleBtn);
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPhone);
-} else {
+$(() => {
   initPhone();
-}
+});
