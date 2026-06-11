@@ -72,82 +72,63 @@ function initPhone() {
     transition: all 0.3s ease;
   `;
 
-  // 拖动功能（支持鼠标与触摸，区分拖动与点击，保存位置）
+  // 拖动功能（使用 Pointer Events，支持鼠标与触摸）
+  let isPointerDown = false;
   let isDragging = false;
-  let startX = 0, startY = 0;
-  let btnStartLeft = 0, btnStartTop = 0;
-  let moved = false;
-  const DRAG_THRESHOLD = 6; // px
+  let startX = 0;
+  let startY = 0;
+  let offsetX = 0;
+  let offsetY = 0;
+  const dragThreshold = 6; // 超过该像素认为是拖拽
 
-  // 从 localStorage 恢复上次的位置（如果有）
-  const savedLeft = localStorage.getItem('my-phone-btn-left');
-  const savedTop = localStorage.getItem('my-phone-btn-top');
-  if (savedLeft !== null && savedTop !== null) {
-    toggleBtn.style.right = 'auto';
-    toggleBtn.style.bottom = 'auto';
-    toggleBtn.style.left = parseInt(savedLeft, 10) + 'px';
-    toggleBtn.style.top = parseInt(savedTop, 10) + 'px';
-  }
-
-  // 防止触摸拖动时页面滚动
+  // 防止触摸时浏览器默认手势影响
   toggleBtn.style.touchAction = 'none';
 
   toggleBtn.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    try { toggleBtn.setPointerCapture(e.pointerId); } catch (err) {}
-    isDragging = true;
-    moved = false;
+    isPointerDown = true;
     startX = e.clientX;
     startY = e.clientY;
     const rect = toggleBtn.getBoundingClientRect();
-    btnStartLeft = rect.left;
-    btnStartTop = rect.top;
+    offsetX = startX - rect.left;
+    offsetY = startY - rect.top;
+    toggleBtn.setPointerCapture && toggleBtn.setPointerCapture(e.pointerId);
     toggleBtn.style.transition = 'none';
     toggleBtn.style.cursor = 'grabbing';
+    e.preventDefault();
   });
 
-  window.addEventListener('pointermove', (e) => {
-    if (!isDragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (!moved && Math.hypot(dx, dy) > DRAG_THRESHOLD) moved = true;
-    if (moved) {
-      let newLeft = btnStartLeft + dx;
-      let newTop = btnStartTop + dy;
-      const btnW = toggleBtn.offsetWidth;
-      const btnH = toggleBtn.offsetHeight;
-      const maxLeft = window.innerWidth - btnW;
-      const maxTop = window.innerHeight - btnH;
-      newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-      newTop = Math.max(0, Math.min(newTop, maxTop));
+  document.addEventListener('pointermove', (e) => {
+    if (!isPointerDown) return;
+    const dx = Math.abs(e.clientX - startX);
+    const dy = Math.abs(e.clientY - startY);
+    if (!isDragging && (dx > dragThreshold || dy > dragThreshold)) {
+      isDragging = true;
+    }
+    if (isDragging) {
+      let x = e.clientX - offsetX;
+      let y = e.clientY - offsetY;
+      // 约束到视口范围内
+      x = Math.max(0, Math.min(window.innerWidth - toggleBtn.offsetWidth, x));
+      y = Math.max(0, Math.min(window.innerHeight - toggleBtn.offsetHeight, y));
       toggleBtn.style.right = 'auto';
       toggleBtn.style.bottom = 'auto';
-      toggleBtn.style.left = newLeft + 'px';
-      toggleBtn.style.top = newTop + 'px';
+      toggleBtn.style.left = x + 'px';
+      toggleBtn.style.top = y + 'px';
     }
   });
 
-  window.addEventListener('pointerup', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    try { toggleBtn.releasePointerCapture(e.pointerId); } catch (err) {}
-    toggleBtn.style.transition = 'all 0.3s ease';
+  document.addEventListener('pointerup', (e) => {
+    if (!isPointerDown) return;
+    isPointerDown = false;
+    toggleBtn.releasePointerCapture && toggleBtn.releasePointerCapture(e.pointerId);
     toggleBtn.style.cursor = 'grab';
-    if (moved) {
-      const leftVal = parseFloat(toggleBtn.style.left || toggleBtn.getBoundingClientRect().left);
-      const topVal = parseFloat(toggleBtn.style.top || toggleBtn.getBoundingClientRect().top);
-      localStorage.setItem('my-phone-btn-left', Math.round(leftVal));
-      localStorage.setItem('my-phone-btn-top', Math.round(topVal));
-      // 标记刚刚拖动过，短时间内屏蔽 click
-      toggleBtn._justDragged = true;
-      setTimeout(() => { toggleBtn._justDragged = false; }, 200);
-    }
+    toggleBtn.style.transition = 'all 0.3s ease';
+    // 结束拖拽后短暂清除标志，保证 click 判断正确
+    setTimeout(() => { isDragging = false; }, 0);
   });
 
   // 6. 点击按钮切换手机显示状态
   toggleBtn.addEventListener('click', (e) => {
-    // 如果刚拖动过，忽略 click
-    if (toggleBtn._justDragged) return;
     if (!isDragging) {
       if (phoneContainer.style.display === 'none') {
         phoneContainer.style.display = 'flex';
