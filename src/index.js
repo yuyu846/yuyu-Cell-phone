@@ -43,7 +43,12 @@ function initPhone() {
   `;
 
   // 4. 挂载手机
-  document.body.appendChild(phoneContainer);
+  if (document.body) {
+    document.body.appendChild(phoneContainer);
+    console.log('[Phone] phoneContainer added to body');
+  } else {
+    console.error('[Phone] document.body is not available');
+  }
 
   // ==========================================
   // 5. 创建开关按钮
@@ -128,6 +133,7 @@ function initPhone() {
   });
 
   document.body.appendChild(toggleBtn);
+  console.log('[Phone] toggleBtn added to body');
 }
 
 $(() => {
