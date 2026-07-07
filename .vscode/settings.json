@@ -32,7 +32,11 @@
     "*.css": "tailwindcss"
   },
   "[javascript]": {
+<<<<<<< HEAD
     "editor.defaultFormatter": "vscode.typescript-language-features"
+=======
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+>>>>>>> 554b225f1325def871e7754811cd8f71ba9a8169
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
